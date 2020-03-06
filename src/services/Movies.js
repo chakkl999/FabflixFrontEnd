@@ -8,8 +8,6 @@ async function search(query, filter, keyword) {
   if (filter === "title") {
     return await Socket.GET(searchEP, query);
   } else {
-    console.log(browseEP+"/"+keyword)
-    console.log(query)
     return await Socket.GET(browseEP+"/"+keyword, query);
   }
 }

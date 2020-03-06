@@ -119,10 +119,18 @@ class Search extends Component {
   }
 
   setPrevNextPage = () => {
-    if (this.state.page !== 0){
-      return (<div style={{"display":"flex","flexDirection":"row", "justifyContent":"center"}}><button className="button" onClick={this.getPrevPage}>Previous page</button>/<button className="button" onClick={this.getNextPage}>Next Page</button></div>)
+    if (this.state.result.length >= parseInt(this.state.query.limit)){
+      if (this.state.page !== 0) {
+        return (<div style={{"display":"flex","flexDirection":"row", "justifyContent":"center"}}><button className="button" onClick={this.getPrevPage}>Previous page</button><button className="button" onClick={this.getNextPage}>Next Page</button></div>)
+      } else {
+        return (<div style={{"display":"flex","flexDirection":"row", "justifyContent":"center"}}><button className="button" onClick={this.getNextPage}>Next Page</button></div>)
+      }
     } else {
-      return (<div style={{"display":"flex","flexDirection":"row", "justifyContent":"center"}}><button className="button" onClick={this.getPrevPage} disabled>Previous page</button>/<button className="button" onClick={this.getNextPage}>Next Page</button></div>)
+      if (this.state.page !== 0) {
+        return (<div style={{"display":"flex","flexDirection":"row", "justifyContent":"center"}}><button className="button" onClick={this.getPrevPage}>Previous page</button></div>)
+      } else {
+        return;
+      }
     }
   }
 
@@ -152,10 +160,10 @@ class Search extends Component {
   }
 
   getPrevPage = () => {
-    const {page, searchFilter, searchedKeyword} = this.state;
+    const {page, searchedFilter, searchedKeyword} = this.state;
     let query = this.state.query;
     query["offset"] = (query["limit"]*(page-1)).toString();
-    Movies.search(query, searchFilter, searchedKeyword)
+    Movies.search(query, searchedFilter, searchedKeyword)
       .then(response => { 
         if(response === undefined) {
           return;
@@ -177,16 +185,6 @@ class Search extends Component {
   }
 
   render() {
-    const resultTable = this.state.result.map((movie, Index) => 
-      <div key={Index} className = "search-box">
-        <button key={movie.movie_id} onClick={()=>this.getDetail(movie.movie_id)}>
-          <img src={"https://image.tmdb.org/t/p/w300/" + movie.backdrop_path} alt=""></img>
-        </button>
-        <label key={movie.title}>Title: {movie.title}</label>
-        <label key={movie.year}>Year: {movie.year}</label>
-        <label key={movie.director}>Director: {movie.director}</label>
-      </div>
-    );
     return (
       <div style={{"textAlign":"center"}}>
         <div className="form-box">
@@ -280,9 +278,17 @@ class Search extends Component {
         </div>
         <label>Result(s):</label>
         <div className = "search-container">
-          {Object.keys(this.state.result).length !== 0 && resultTable}
+          {this.state.result !== undefined && this.state.result.length !== 0 && (this.state.result.map((movie, Index) => 
+            <div key={Index} className = "search-box">
+              <button key={movie.movie_id} onClick={()=>this.getDetail(movie.movie_id)}>
+                <img src={"https://image.tmdb.org/t/p/w300/" + movie.backdrop_path} alt=""></img>
+              </button>
+              <label key={movie.title}>Title: {movie.title}</label>
+              <label key={movie.year}>Year: {movie.year}</label>
+              <label key={movie.director}>Director: {movie.director}</label>
+            </div>))}
         </div>
-        {Object.keys(this.state.result).length !== 0 && this.setPrevNextPage()}
+        {this.state.result !== undefined && this.state.result.length !== 0 && this.setPrevNextPage()}
       </div>
     ) ;
   }

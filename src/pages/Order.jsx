@@ -16,7 +16,7 @@ class Order extends Component {
   getTransaction = () => {
     Billing.retrieveTransaction()
     .then(response => {
-        console.log(response);
+        // console.log(response);
       if(response === undefined) {
         return;
       }
@@ -39,7 +39,7 @@ class Order extends Component {
   }
 
   render() {
-      console.log(this.state.transaction)
+      // console.log(this.state.transaction)
       return (this.state.loading ? (<h1 style={{"textAlign":"center"}}>Loading...</h1>) : (this.state.transaction !== undefined && this.state.transaction.length !== 0 ? (
         <div>
             <h1 style={{"textAlign":"center"}}>Order History</h1>
@@ -54,7 +54,7 @@ class Order extends Component {
                         <label className="label">${t.amount.total}</label>
                     </div>)}
             </div>
-      </div>) : (<div>No order history.</div>)));
+      </div>) : (<h1 style={{"textAlign":"center"}}>No order history found.</h1>)));
   }
 }
 

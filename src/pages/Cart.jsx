@@ -185,7 +185,7 @@ class Cart extends Component {
         <button className="button" onClick={this.checkOutItems}>Checkout</button>
       </div>
     </div>
-    ) : (<div>Cart is empty</div>)
+    ) : (<h1 style={{"textAlign":"center"}}>Cart is empty.</h1>)
     ));
   }
 }
