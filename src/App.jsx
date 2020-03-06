@@ -1,53 +1,62 @@
 import React, { Component } from "react";
-import Cookies from "js-cookie";
-import Axios from "axios";
 
-import NavBar from "./NavBar";
 import Content from "./Content";
+import NavBar from "./NavBar";
+
+/*
+  Remember when passing around variable and functions
+
+  If you want componenets down the tree to VIEW your 
+  variable, simply pass that varaible
+
+  If you want componenets down the tree to MODIFY your
+  varaible, then pass a function down the tree that allows
+  the components to modify it as needed
+
+  The function should be made in the Component that "owns" that 
+  varaible, as in which Component has it as part of its state
+  because only that component can modify its own state.
+  Pass variables and functions into Components like so:
+
+    <Componenet var={value} func={value}/>
+
+  IMPORTANT: DO NOT CALL THE FUNCTION
+
+  func={function}   WORKS
+  func={function()} DOES NOT WORK, This is calling the function 
+                                   and storing the return value
+
+  To get the passed variables and functions from inside 
+  the Componenet call `this.props.<NAME>`
+*/
+const localStorage = require("local-storage");
 
 class App extends Component {
   state = {
-    loggedIn: this.checkedLoggedIn()
+    "isLoggedIn": this.isUserLoggedIn()
   };
 
-  handleLogIn = (email, session_id) => {
-    const { common } = Axios.defaults.headers;
-
-    Cookies.set("email", email);
-    Cookies.set("session_id", session_id);
-
-    common["email"] = email;
-    common["session_id"] = session_id;
-
-    this.setState({ loggedIn: true });
+  isUserLoggedIn() {
+    return (localStorage.get("email") !== null && localStorage.get("session_id") !== null)
   };
 
-  handleLogOut = () => {
-    const { common } = Axios.defaults.headers;
+  handleLogin = (email, response) => {
+    // console.log(response["data"]["resultCode"]);
+    response["data"]["resultCode"] === 120 && this.setState({"isLoggedIn": true});
+    return (response["data"]["resultCode"] === 120);
+  }
 
-    Cookies.remove("email");
-    Cookies.remove("session_id");
-
-    delete common["email"];
-    delete common["session_id"];
-
-    this.setState({ loggedIn: false });
-  };
-
-  checkedLoggedIn() {
-    return (
-      Cookies.get("email") !== undefined &&
-      Cookies.get("session_id") !== undefined
-    );
+  handleLogout = () => {
+    localStorage.clear("email");
+    localStorage.clear("session_id");
+    this.setState({"isLoggedIn": false})
   }
 
   render() {
-    const { loggedIn } = this.state;
-
     return (
       <div className="app">
-        <NavBar handleLogOut={this.handleLogOut} loggedIn={loggedIn} />
-        <Content handleLogIn={this.handleLogIn} />
+        <NavBar isLoggedIn = {this.state.isLoggedIn} logout={this.handleLogout}/>
+        <Content isLoggedIn = {this.state.isLoggedIn} handleLogin = {this.handleLogin} logout={this.handleLogout}/>
       </div>
     );
   }

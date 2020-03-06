@@ -1,9 +1,10 @@
 import Axios from "axios";
-import Cookies from "js-cookie";
 
 import Config from "../Config.json";
 
 const { baseUrl, pollLimit, gatewayEPs } = Config;
+
+const localStorage = require("local-storage");
 
 const HTTPMethod = Object.freeze({
   GET: "GET",
@@ -12,15 +13,30 @@ const HTTPMethod = Object.freeze({
 });
 
 function initSocket() {
-  const { common } = Axios.defaults.headers;
+  // const { common } = Axios.defaults.headers;
 
-  common["session_id"] = Cookies.get("session_id");
+  // common["email"] = localStorage.get("email");
+  // common["session_id"] = localStorage.get("session_id");
 
   Axios.defaults.baseURL = baseUrl;
 }
 
-async function GET(path) {
-  return await sendHTTP(HTTPMethod.GET, path);
+function updateHeader() {
+  const { common } = Axios.defaults.headers;
+
+  common["email"] = localStorage.get("email");
+  common["session_id"] = localStorage.get("session_id");
+}
+
+function removeHeader() {
+  const { common } = Axios.defaults.headers;
+
+  delete common["email"];
+  delete common["session_id"];
+}
+
+async function GET(path, data) {
+  return await sendHTTP(HTTPMethod.GET, path, data);
 }
 
 async function POST(path, data) {
@@ -33,10 +49,13 @@ async function DELETE(path) {
 
 async function sendHTTP(method, path, data) {
   let response;
-
   switch (method) {
     case HTTPMethod.GET:
-      response = await Axios.get(path);
+      if(data !== undefined) {
+        response = await Axios.get(path, {params:data});
+      } else {
+        response = await Axios.get(path);
+      }
       break;
     case HTTPMethod.POST:
       response = await Axios.post(path, data);
@@ -51,7 +70,13 @@ async function sendHTTP(method, path, data) {
   /************************************************
         TODO Do error checking on response 
   ************************************************/
-
+  if (response.status !== 204) {
+    if (response.status === 500) {
+      alert("Server error. Please try again.");
+      return undefined;
+    }
+    return response
+  }
   return await getReport(response);
 }
 
@@ -69,11 +94,15 @@ async function pollForReport(axiosConfig) {
   for (let i = 0; i < pollLimit; i++) {
     const response = await Axios.get(gatewayEPs.reportEP, axiosConfig);
 
+    // console.log("asdf");
     if (response.status !== noContent) {
       /************************************************
             TODO More Robust checking for response  
       ************************************************/
-
+      if (response.status === 500) {
+          alert("Server error. Please try again.");
+          return undefined;
+      }
       return response;
     } else await timeOut();
   }
@@ -92,5 +121,7 @@ export default {
   initSocket,
   GET,
   POST,
-  DELETE
+  DELETE,
+  updateHeader,
+  removeHeader
 };
